@@ -1,0 +1,58 @@
+name: Deploy with Artifacts
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Code
+        uses: actions/checkout@v4
+      - name: Install Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Install dependencies
+        run: pnpm install
+      - name: Lint
+        run: pnpm run lint
+      - name: Test
+        run: pnpm run test
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Code
+        uses: actions/checkout@v4
+      - name: Install Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Build
+        run: pnpm run build
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+      - name: Output ls command
+        run: ls
+      - name: Deploy
+        run: echo "Deploying..."
